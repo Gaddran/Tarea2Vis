@@ -225,13 +225,16 @@ Image("./images/02-happiness-economics.png")
 
 scat_dat = pd.read_csv(r".\data\02-happiness-economics.csv",index_col=0)
 scat_dat["gdp.pc"] = scat_dat["gdp.pc"]/1000
+hightlight = ["Burundi","Benin","Tanzania","India","Ukraine","Vietnam","Pakistan","China","Brazil","Venezuela","Greece","Spain","Japan",
+              "Germany","Netherlands","United States","United Arab Emirates","Hong Kong"]
+hightlight_df = scat_dat[scat_dat['name'].isin(hightlight)]
 
 
 # Filter plot data -- for adult population >5m. Reduces number of countries from 125 to 85 pairs
-iso2c_select = scat_dat[scat_dat['year'] == 2018][scat_dat['pop'] > 5000000]['iso2c']
-
+iso2c_select = scat_dat.query("year == 2018 and pop > 5000000")['iso2c']
 # scatterplot 
-plt.figure(figsize=(15, 10))
+size_break= {'<25m' : 80 , '25m-100m' : 300, '100m-500m' : 900, '500m+' : 2500}
+plt.figure(figsize=(13, 10))
 scat_plot = sns.scatterplot(
         data=scat_dat[(scat_dat['year'] == 2018) & (scat_dat['iso2c'].isin(iso2c_select))],
         x='gdp.pc',
@@ -240,30 +243,79 @@ scat_plot = sns.scatterplot(
         size='pop.break',
         alpha=1,
         palette={False: "#87d4df", True: "#f9997a"},
-        sizes={'<25m' : 100 , '25m-100m' : 400, '100m-500m' : 1000, '500m+' : 2500},
-        
+        sizes=size_break,
+        legend=False,
+        zorder=5,
 )
-
-# plot labels
-plt.xscale('log')
-plt.xlim(0.5, 100)
-plt.ylim(3, 8)
-plt.title("GDP per person v self-reported happiness\n85 countries with adult population over 5m")
-plt.xlabel("GDP per person, $'000\nAt purchasing-power parity, log scale")
-plt.ylabel("Happiness, 0-10 scale")
-
-# legenda
-handles, labels = scat_plot.get_legend_handles_labels()
-plt.legend(handles, labels, title="Happiness and GDP per person:", loc='upper center', bbox_to_anchor=(0.12, 0.9), ncol=2, )
 
 # añadir las lineas de los paises
 for country in iso2c_select:
     country_data = scat_dat[scat_dat['iso2c'] == country].sort_values('year')
     if(country_data["paradox"].iloc[0]):
-        plt.plot(country_data['gdp.pc'], country_data['happy'], alpha=1, color="#f9997a")
+        plt.plot(country_data['gdp.pc'], country_data['happy'], alpha=1, color="#f9997a", zorder=3)
     else:
-        plt.plot(country_data['gdp.pc'], country_data['happy'], alpha=1, color="#87d4df")
+        plt.plot(country_data['gdp.pc'], country_data['happy'], alpha=1, color="#87d4df", zorder=3)
 
+# circulos paises remarcados
+scat_plot_high = sns.scatterplot(
+        data=hightlight_df[(hightlight_df['year'] == 2018)],
+        x='gdp.pc',
+        y='happy',
+        hue='paradox',
+        size='pop.break',
+        alpha=1,
+        palette={False: "#00a7c0", True: "#f04e33"},
+        sizes=size_break,
+        legend=False,
+        zorder=10
+        
+)
+
+
+# añadir las lineas de los paises remarcados
+for country in hightlight:
+    country_data_high = hightlight_df[hightlight_df['name'] == country].sort_values('year')
+    if(country_data_high["paradox"].iloc[0]):
+        plt.plot(country_data_high['gdp.pc'], country_data_high['happy'], alpha=1, color="#f04e33", zorder=11)
+    else:
+        plt.plot(country_data_high['gdp.pc'], country_data_high['happy'], alpha=1, color="#00a7c0", zorder=11)
+
+China = hightlight_df[hightlight_df['name'] == "China"].sort_values('year')
+India = hightlight_df[hightlight_df['name'] == "India"].sort_values('year')
+plt.plot(China['gdp.pc'], China['happy'], alpha=1, color="#00a7c0", zorder=11, lw=4)
+plt.plot(India['gdp.pc'], India['happy'], alpha=1, color="#f04e33", zorder=11, lw=4)
+
+# plot labels
+
+# plt.ylim(3, 8.6)
+# plt.title("GDP per person v self-reported happiness\n85 countries with adult population over 5m")
+# plt.xlabel("GDP per person, $'000\nAt purchasing-power parity, log scale")
+# plt.ylabel("Happiness, 0-10 scale")
+# legenda
+# handles, labels = scat_plot.get_legend_handles_labels()
+# legend = plt.legend(handles, labels, title="Happiness and GDP per person:", loc='upper center', bbox_to_anchor=(0.12, 0.9), ncol=2, )
+
+scat_plot.spines['left'].set_visible(False)
+scat_plot.spines['right'].set_visible(False)
+scat_plot.spines['top'].set_visible(False)
+scat_plot.grid(visible=True, axis="y")
+
+# ajuste de ticks para los ejes
+scat_plot.tick_params(axis='y', which='both', labelfontfamily= 'Roboto', left=False, length=0,labelsize=12) # Yticks
+scat_plot.tick_params(axis='x', which='both', labelfontfamily= 'Roboto', length=8,width=1,labelsize=12) # Xticks
+scat_plot.set_xscale('log')
+
+# Y axis
+scat_plot.set_ylim(3, 8.6)
+scat_plot.set_yticklabels([])
+scat_plot.set_ylabel("")
+
+# X axis
+scat_plot.set_xticks([1,5,10,50,100])
+scat_plot.set_xticklabels([1,5,10,50,100],)
+scat_plot.set_xlabel("")
+for i in [4,5,6,7,8]:
+    scat_plot.text(x=108,y=i+0.01,s=i, fontfamily='Roboto', size=12)
 plt.tight_layout()
 plt.show()
 
