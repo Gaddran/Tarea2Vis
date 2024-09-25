@@ -59,6 +59,7 @@ from matplotlib import pyplot as plt
 from matplotlib.cm import ScalarMappable
 from matplotlib import lines
 from matplotlib import patches
+from matplotlib.transforms import ScaledTranslation
 import seaborn as sns
 import pandas as pd
 import numpy as np
@@ -233,8 +234,8 @@ hightlight_df = scat_dat[scat_dat['name'].isin(hightlight)]
 # Filter plot data -- for adult population >5m. Reduces number of countries from 125 to 85 pairs
 iso2c_select = scat_dat.query("year == 2018 and pop > 5000000")['iso2c']
 # scatterplot 
-size_break= {'<25m' : 80 , '25m-100m' : 300, '100m-500m' : 900, '500m+' : 2500}
-plt.figure(figsize=(13, 10))
+size_break= {'<25m' : 80 , '25m-100m' : 300, '100m-500m' : 900, '500m+' : 3200}
+fig, ax = plt.subplots(figsize=(15, 10))
 scat_plot = sns.scatterplot(
         data=scat_dat[(scat_dat['year'] == 2018) & (scat_dat['iso2c'].isin(iso2c_select))],
         x='gdp.pc',
@@ -285,19 +286,12 @@ India = hightlight_df[hightlight_df['name'] == "India"].sort_values('year')
 plt.plot(China['gdp.pc'], China['happy'], alpha=1, color="#00a7c0", zorder=11, lw=4)
 plt.plot(India['gdp.pc'], India['happy'], alpha=1, color="#f04e33", zorder=11, lw=4)
 
-# plot labels
-
-# plt.ylim(3, 8.6)
-# plt.title("GDP per person v self-reported happiness\n85 countries with adult population over 5m")
-# plt.xlabel("GDP per person, $'000\nAt purchasing-power parity, log scale")
-# plt.ylabel("Happiness, 0-10 scale")
-# legenda
-# handles, labels = scat_plot.get_legend_handles_labels()
-# legend = plt.legend(handles, labels, title="Happiness and GDP per person:", loc='upper center', bbox_to_anchor=(0.12, 0.9), ncol=2, )
+#nombres paises remarcados
 
 scat_plot.spines['left'].set_visible(False)
 scat_plot.spines['right'].set_visible(False)
 scat_plot.spines['top'].set_visible(False)
+scat_plot.spines['bottom'].set_visible(False)
 scat_plot.grid(visible=True, axis="y")
 
 # ajuste de ticks para los ejes
@@ -316,6 +310,141 @@ scat_plot.set_xticklabels([1,5,10,50,100],)
 scat_plot.set_xlabel("")
 for i in [4,5,6,7,8]:
     scat_plot.text(x=108,y=i+0.01,s=i, fontfamily='Roboto', size=12)
+scat_plot.add_artist(lines.Line2D([0.1,100],[3,3],color='k',zorder=16))    
+
+#borrar parte del grid
+scat_plot.add_artist(patches.Rectangle((0,6),width=3,height=3,color='w',zorder=15))
+
+#linea top
+scat_plot.add_artist(lines.Line2D([0.001,110],[8.6,8.6],color='k',zorder=16))
+
+#titulo
+scat_plot.text(x=0.525,y=8.45,s="Self-reported happiness teds to be higher in richer countries, but does not always rise when economies grow",
+               zorder=16, size=16, weight=500, fontfamily='Roboto')
+#linea chica
+scat_plot.add_artist(lines.Line2D([0.001,0.615],[8.2,8.2],color='k',zorder=16, lw=0.9))
+
+#subitulo
+scat_plot.text(x=0.525,y=8.08,s="GDP per person v self-reported happiness",
+               zorder=16, size=13, weight=500, fontfamily='Roboto')
+scat_plot.text(x=0.525,y=7.95,s="85 countries with adult population over 5m",
+               zorder=16, size=12, weight=300, fontfamily='Roboto')
+
+#yaxis label
+scat_plot.text(x=80,y=8.3,s="Happiness",
+               zorder=16, size=13, weight=500, fontfamily='Roboto')
+scat_plot.text(x=83,y=8.17,s="0-10 scale",
+               zorder=16, size=12, weight=300, fontfamily='Roboto')
+
+#legenda1
+#farrow
+scat_plot.plot([0.71,0.8],[7.5,7.5],zorder=16,color='0.5',lw=1.8)
+scat_plot.plot(0.83,7.5,marker='o',ms=12,zorder=16,mfc='0.5',mew=0)
+
+#texto
+scat_plot.text(x=0.525,y=7.4,s="2005-08\naverage", zorder=16, size=13, weight=500, fontfamily='Roboto')
+scat_plot.text(x=0.89,y=7.4,s="2015-18\naverage", zorder=16, size=13, weight=500, fontfamily='Roboto')
+scat_plot.text(x=0.525,y=6.9,s="Population, m", zorder=16, size=13, weight=500, fontfamily='Roboto')
+
+#circulos
+
+scat_plot.add_artist(patches.Ellipse(xy=(0.57,6.6),width=.019,height=.058,zorder=16,color='k',lw=.8,fill=False,)) #nose pq alargaba el plot hacerlo con un marker
+scat_plot.plot(.67,6.6,marker='o',ms=17,zorder=16,fillstyle='none',mec='k',mew=0.7)
+scat_plot.plot(.86,6.6,marker='o',ms=35,zorder=16,fillstyle='none',mec='k',mew=0.7)
+scat_plot.plot(1.2,6.6,marker='o',ms=60,zorder=16,fillstyle='none',mec='k',mew=0.7)
+
+#textos circulos
+scat_plot.text(x=0.54,y=6.3,s="5-25", zorder=16, size=11, weight=350, fontfamily='Roboto')
+scat_plot.text(x=0.62,y=6.3,s="25-100", zorder=16, size=11, weight=350, fontfamily='Roboto')
+scat_plot.text(x=0.78,y=6.3,s="100-500", zorder=16, size=11, weight=350, fontfamily='Roboto')
+scat_plot.text(x=1.135,y=6.565,s="500+", zorder=16, size=11, weight=350, fontfamily='Roboto')
+
+#leyenda 2
+scat_plot.text(x=3,y=7.85,s="Happiness and GDP per person:", zorder=16, size=14, weight=600, fontfamily='Roboto')
+scat_plot.plot([3.,3.4],[7.65,7.65],zorder=16,color='#00a7c0',lw=1.8)
+scat_plot.plot(3.5,7.65,marker='o',ms=12,zorder=16,mfc='#00a7c0',mew=0)
+scat_plot.text(x=3.75,y=7.61,s="moving in the same direction", zorder=16, size=13, weight=600, fontfamily='Roboto', color='#00a7c0')
+
+scat_plot.plot([3.,3.4],[7.4,7.4],zorder=16,color='#f04e33',lw=1.8)
+scat_plot.plot(3.5,7.4,marker='o',ms=12,zorder=16,mfc='#f04e33',mew=0)
+scat_plot.text(x=3.75,y=7.36,s="moving in opposite directions", zorder=16, size=13, weight=600, fontfamily='Roboto', color='#f04e33')
+
+#texto venezuela
+scat_plot.text(x=2.9, y=6.85, s="\u2192", size=20,fontfamily="sans-serif",weight=200)
+scat_plot.text(x=3.2, y=6.862, s="A decade ago Venezuela was among", size=12,fontfamily="Roboto",weight=300)
+scat_plot.text(x=3.0, y=6.545, s="the happiest contries in the world, but\nits economic collapse has caused\nwidespread misery",
+            size=12,fontfamily="Roboto",weight=300)
+
+#texto europa
+scat_plot.text(x=14, y=7.85, s="\u2192", size=20,fontfamily="sans-serif",weight=200)
+scat_plot.add_artist(patches.Rectangle((14,7.85),width=0.4,height=0.1,color='w',zorder=15))
+scat_plot.text(x=15.5, y=7.86, s="Life satisfaction is high", size=12,fontfamily="Roboto",weight=300)
+scat_plot.text(x=14.5, y=7.545, s="but decreasing in many\nEuropean countries,\ndespite growing wealth",
+            size=12,fontfamily="Roboto",weight=300)
+
+#texto india
+scat_plot.text(x=5.2, y=3.5, s="\u2191", size=20,fontfamily="sans-serif",weight=200)
+scat_plot.add_artist(patches.Rectangle((5.2,3.5),width=0.4,height=0.04,color='w',zorder=15))
+scat_plot.text(x=5.7, y=3.55, s="India's GDP per person has", size=12,fontfamily="Roboto",weight=300, zorder=16)
+scat_plot.text(x=5.4, y=3.23, s="increased by 80% in ten years\nbut average happiness has\nfallen considerably",
+            size=12,fontfamily="Roboto",weight=300, zorder=16)
+
+#xaxis label
+fig.text(x=0.44, y=-0.01, s="GDP per person, $'000",weight='bold', fontfamily='Roboto',size=14)
+fig.text(x=0.39, y=-0.035, s="At purchasing-power parity, log scale",weight='300', fontfamily='Roboto',size=14)
+
+#poorer
+fig.text(x=.08, y=-0.01, s="\u2190", size=20,fontfamily="sans-serif",weight=200)
+fig.add_artist(patches.Rectangle((0.09,-0.01),width=0.004,height=0.04,color='w',zorder=15))
+fig.text(x=0.092, y=-0.008, s="Poorer",weight='bold', fontfamily='Roboto',size=14,zorder=16)
+
+#richer
+fig.text(x=.9, y=-0.01, s="\u2192", size=20,fontfamily="sans-serif",weight=200)
+fig.add_artist(patches.Rectangle((0.901,-0.01),width=0.005,height=0.04,color='w',zorder=15))
+fig.text(x=0.865, y=-0.008, s="Richer",weight='bold', fontfamily='Roboto',size=14,zorder=16)
+
+#source
+fig.text(x=1, y=-0.085, s="Sources: World Happiness Report, bu John Helliwell, Richard\nLayard & Jeffrey Sachs (eds), UN, 2019; World Bank",
+        weight='270', fontfamily='Roboto',size=12, ha='right')
+
+#happier
+fig.text(x=.938, y=0.79, s="\u2191", size=20,fontfamily="sans-serif",weight=200)
+fig.add_artist(patches.Rectangle((0.945,0.789),width=0.004,height=0.007,color='w',zorder=17))
+fig.text(x=0.94, y=0.795, s="Happier",weight='bold', fontfamily='Roboto',size=14,zorder=17,ha='right')
+
+#less happy
+fig.text(x=.938, y=0.125, s="\u2193", size=20,fontfamily="sans-serif",weight=200)
+fig.add_artist(patches.Rectangle((0.945,0.138),width=0.004,height=0.05,color='w',zorder=17))
+fig.text(x=0.94, y=0.125, s="Less happy",weight='bold', fontfamily='Roboto',size=14,zorder=17,ha='right')
+
+#highlight text
+scat_plot.text(x=0.7, y=3.45, s="Burundi", size=12,fontfamily="Roboto",weight=700, zorder=16, color='#f04e33')
+scat_plot.text(x=1.7, y=5.10, s="Benin", size=12,fontfamily="Roboto",weight=700, zorder=16, color='#00a7c0')
+scat_plot.text(x=2.9, y=3.25, s="Tanzania", size=12,fontfamily="Roboto",weight=700, zorder=16, color='#f04e33')
+scat_plot.text(x=6.1, y=3.95, s="India", size=12,fontfamily="Roboto",weight=700, zorder=16, color='w')
+scat_plot.text(x=6.25, y=4.5, s="Ukraine", size=12,fontfamily="Roboto",weight=700, zorder=16, color='#00a7c0')
+scat_plot.text(x=5.6, y=5.05, s="Vietnam", size=12,fontfamily="Roboto",weight=700, zorder=16, color='#f04e33')
+scat_plot.text(x=4.5, y=5.75, s="Pakistan", size=12,fontfamily="Roboto",weight=700, zorder=16, color='#00a7c0')
+scat_plot.text(x=14.28, y=5.15, s="China", size=12,fontfamily="Roboto",weight=700, zorder=16, color='w')
+scat_plot.text(x=11.1, y=6.25, s="Brazil", size=12,fontfamily="Roboto",weight=700, zorder=16, color='#f04e33')
+scat_plot.text(x=12.5, y=6.75, s="Venezuela", size=12,fontfamily="Roboto",weight=700, zorder=16, color='#00a7c0')
+scat_plot.text(x=24., y=5.18, s="Greece", size=12,fontfamily="Roboto",weight=700, zorder=16, color='#00a7c0')
+scat_plot.text(x=42., y=5.21, s="Hong Kong", size=12,fontfamily="Roboto",weight=700, zorder=16, color='#00a7c0')
+scat_plot.text(x=36, y=5.65, s="Japan", size=12,fontfamily="Roboto",weight=700, zorder=16, color='#f04e33')
+scat_plot.text(x=28, y=6.45, s="Spain", size=12,fontfamily="Roboto",weight=700, zorder=16, color='#f04e33')
+scat_plot.text(x=37., y=6.4, s="Germany", size=12,fontfamily="Roboto",weight=700, zorder=16, color='#00a7c0')
+scat_plot.text(x=50, y=6.57, s="United\nStates", size=12,fontfamily="Roboto",weight=700, zorder=16, color='#f04e33')
+scat_plot.text(x=41, y=7.58, s="Netherlands", size=12,fontfamily="Roboto",weight=700, zorder=16, color='#f04e33')
+scat_plot.text(x=81, y=6.62, s="UAE", size=12,fontfamily="Roboto",weight=700, zorder=16, color='#f04e33')
+
+
+
+#venezuela farrow
+scat_plot.add_patch(patches.FancyArrowPatch((14.7,6.73), (15.9,6.6), connectionstyle="arc3,rad=0.4", arrowstyle='-',color='#00a7c0')) 
+#Alemania farrow
+scat_plot.add_patch(patches.FancyArrowPatch((46,6.47), (42.5,6.7), connectionstyle="arc3,rad=0.4", arrowstyle='-',color='#00a7c0')) 
+
+
 plt.tight_layout()
 plt.show()
 
